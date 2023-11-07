@@ -53,34 +53,53 @@ regd_users.post("/login", (req,res) => {
 
 // Add a book review
 regd_users.put("/auth/review/:isbn", (req, res) => {
-    const sessionId = req.headers.authorization; // Assume you pass the session ID in the Authorization header
-    const isbn = req.params.isbn;
+    const isbn = req.params.isbn; // Get the ISBN from the route parameters
     const review = req.body.review;
-  
-    const userSession = userSessions[sessionId];
-  
-    if (!userSession) {
-      return res.status(401).json({ error: "Invalid session" });
+    const username = req.session.authorization.username; // Get the username from the session
+ 
+    if (!isbn || !review || !username) {
+        return res.status(400).json({ message: 'Invalid request. Please provide ISBN, review, and make sure you are logged in.' });
     }
-  
-    const username = userSession.username;
-  
-    const book = books[isbn];
-  
-    if (!book) {
-      return res.status(404).json({ error: "Book not found" });
-    }
-  
-    // Check if the book already has a review from this user
-    if (book.reviews[username]) {
-      // Modify the existing review
-      book.reviews[username] = review;
-      res.json({ message: "Review modified" });
+
+    // Check if the book with the given ISBN exists in your books object
+    if (books[isbn]) {
+        // Check if the user has already posted a review for this book
+        if (books[isbn].reviews[username]) {
+            // Modify the existing review for the user
+            books[isbn].reviews[username] = review;
+            res.json({ message: 'Review modified successfully.' });
+        } else {
+            // Add a new review for the user
+            books[isbn].reviews[username] = review;
+            res.json({ message: 'Review added successfully.' });
+        }
     } else {
-      // Add a new review
-      book.reviews[username] = review;
-      res.json({ message: "Review added" });
+        res.status(404).json({ message: 'Book not found with the given ISBN.' });
     }
+});
+regd_users.delete("/auth/review/:isbn", (req, res) => {
+    const isbn = req.params.isbn; // Get the ISBN from the route parameters
+    const username = req.session.authorization.username; // Get the username from the session
+
+    if (!isbn || !username) {
+        return res.status(400).json({ message: 'Invalid request. Please provide ISBN and make sure you are logged in.' });
+    }
+
+    // Check if the book with the given ISBN exists in your books object
+    if (books[isbn]) {
+        // Check if the user has posted a review for this book
+        if (books[isbn].reviews[username]) {
+            // Delete the user's review for this book
+            delete books[isbn].reviews[username];
+            res.json({ message: 'Review deleted successfully.' });
+        } else {
+            res.status(404).json({ message: 'User has not posted a review for this book.' });
+        }
+    } else {
+        res.status(404).json({ message: 'Book not found with the given ISBN.' });
+    }
+
+
 });
 
 module.exports.authenticated = regd_users;

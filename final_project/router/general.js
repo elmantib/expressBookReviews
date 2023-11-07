@@ -1,3 +1,4 @@
+const axios = require('axios');
 const express = require('express');
 let books = require("./booksdb.js");
 let isValid = require("./auth_users.js").isValid;
@@ -5,16 +6,8 @@ let users = require("./auth_users.js").users;
 const public_users = express.Router();
 
 
-/*const authenticatedCustomer = (username,password)=>{
-  let validcustomers = customers.filter((customer)=>{
-    return (customer.username === username && customer.password === password)
-  });
-  if(validcustomers.length > 0){
-    return true;
-  } else {
-    return false;
-  }
-}*/
+
+
 public_users.post("/register", (req,res) => {
     const username = req.body.username;
     const password = req.body.password;
@@ -29,10 +22,26 @@ public_users.post("/register", (req,res) => {
     } 
     return res.status(404).json({message: "Unable to register user."});
 });
+// Define the API endpoint where the list of books is available
+const booksAPIEndpoint = 'https://elmantibrahi-5000.theiadocker-0-labs-prod-theiak8s-4-tor01.proxy.cognitiveclass.ai'; // Replace with your actual API endpoint
 
-// Get the book list available in the shop
-public_users.get('/',function (req, res) {
-     res.send(JSON.stringify(books,null,4))
+// Create a function to fetch the list of books using Axios and Promises
+function fetchBooks() {
+  return axios.get(booksAPIEndpoint)
+    .then(response => response.data)
+    .catch(error => {
+      throw new Error('Failed to fetch books list: ' + error.message);
+    });
+}
+
+// Example route to fetch and return the list of books
+public_users.get('/', async (req, res) => {
+  try {
+    const books = await fetchBooks();
+    res.json(books);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 });
 
 // Get book details based on ISBN
