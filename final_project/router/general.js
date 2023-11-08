@@ -1,4 +1,4 @@
-const axios = require('axios');
+const axios = require('axios').default;
 const express = require('express');
 let books = require("./booksdb.js");
 let isValid = require("./auth_users.js").isValid;
@@ -23,36 +23,47 @@ public_users.post("/register", (req,res) => {
     return res.status(404).json({message: "Unable to register user."});
 });
 // Define the API endpoint where the list of books is available
-const booksAPIEndpoint = 'https://elmantibrahi-5000.theiadocker-0-labs-prod-theiak8s-4-tor01.proxy.cognitiveclass.ai'; // Replace with your actual API endpoint
 
-// Create a function to fetch the list of books using Axios and Promises
-function fetchBooks() {
-  return axios.get(booksAPIEndpoint)
-    .then(response => response.data)
-    .catch(error => {
-      throw new Error('Failed to fetch books list: ' + error.message);
-    });
-}
 
 // Example route to fetch and return the list of books
 public_users.get('/', async (req, res) => {
-  try {
-    const books = await fetchBooks();
-    res.json(books);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
+  
+   let myPromises =new Promise((resolve,reject)=>{
+       setTimeout(()=>{
+           resolve('promise resolved');
+           res.send(JSON.stringify(books,null,4));
+
+
+       },1000)
+   })
+   myPromises.then((successMessage) => {
+    console.log("From Callback " + successMessage)
+  })
 });
 
 // Get book details based on ISBN
 public_users.get('/isbn/:isbn',function (req, res) {
-     const isbn =req.params.isbn;
-     res.send(books[isbn]);
+
+     let myPromises =new Promise((resolve,reject)=>{
+        setTimeout(()=>{
+            resolve('promise resolved');
+            const isbn =req.params.isbn;
+            res.send(books[isbn]);
+ 
+ 
+        },1000)
+    })
+    myPromises.then((successMessage) => {
+     console.log("From Callback " + successMessage)
+   })
  });
   
 // Get book details based on author
 public_users.get('/author/:author',function (req, res) {
-     const author = req.params.author;
+    let myPromises =new Promise((resolve,reject)=>{
+        setTimeout(()=>{
+            resolve('promise resolved');
+            const author = req.params.author;
      // Replace with the actual way you retrieve request parameters
 
      const booksByAuthor = [];
@@ -67,22 +78,41 @@ public_users.get('/author/:author',function (req, res) {
        }
      }
      res.send(booksByAuthor);
+ 
+ 
+        },1000)
+    })
+    myPromises.then((successMessage) => {
+     console.log("From Callback " + successMessage)
+   })
+     
      
 });
 
 // Get all books based on title
 public_users.get('/title/:title',function (req, res) {
-     const title=req.params.title;
-     const booksByTitle=[];
-     for (const bookId in books){
-         if(books.hasOwnProperty(bookId)){
-             const book=books[bookId];
-             if(book.title===title){
-                 booksByTitle.push(book);
-             }
-         }
-     }
-     res.send(booksByTitle);
+    let myPromises =new Promise((resolve,reject)=>{
+        setTimeout(()=>{
+            resolve('promise resolved');
+            const title=req.params.title;
+            const booksByTitle=[];
+            for (const bookId in books){
+                if(books.hasOwnProperty(bookId)){
+                    const book=books[bookId];
+                    if(book.title===title){
+                        booksByTitle.push(book);
+                    }
+                }
+            }
+            res.send(booksByTitle);
+ 
+ 
+        },1000)
+    })
+    myPromises.then((successMessage) => {
+     console.log("From Callback " + successMessage)
+   })
+     
 });
 
 //  Get book review
